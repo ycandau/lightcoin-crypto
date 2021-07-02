@@ -1,29 +1,82 @@
-let balance = 500.00;
+// index.js
 
-class Withdrawal {
+//------------------------------------------------------------------------------
 
-  constructor(amount) {
+class Account {
+  constructor(username) {
+    this.username = username;
+    this._balance = 0;
+    this.transactions = [];
+  }
+
+  get balance() {
+    return this.transactions.reduce(
+      (bal, trans) => bal + trans.value,
+      this._balance
+    );
+  }
+
+  addTransaction(transaction) {
+    this.transactions.push(transaction);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+class Transaction {
+  constructor(amount, account) {
     this.amount = amount;
+    this.account = account;
+  }
+
+  get isNotAllowed() {
+    return this.value + this.account.balance < 0;
   }
 
   commit() {
-    balance -= this.amount;
+    if (this.isNotAllowed) return;
+    this.time = new Date();
+    this.account.addTransaction(this);
   }
-
 }
 
+//------------------------------------------------------------------------------
 
+class Withdrawal extends Transaction {
+  get value() {
+    return -this.amount;
+  }
+}
 
+//------------------------------------------------------------------------------
 
-// DRIVER CODE BELOW
-// We use the code below to "drive" the application logic above and make sure it's working as expected
+class Deposit extends Transaction {
+  get value() {
+    return this.amount;
+  }
+}
 
-t1 = new Withdrawal(50.25);
+//------------------------------------------------------------------------------
+// Driver
+
+const myAccount = new Account("snow-patrol");
+
+console.log("----------------");
+t1 = new Withdrawal(30, myAccount);
 t1.commit();
-console.log('Transaction 1:', t1);
+console.log("Transaction 1:", t1);
+console.log("Balance:", myAccount.balance);
 
-t2 = new Withdrawal(9.99);
+console.log("----------------");
+t2 = new Deposit(100, myAccount);
 t2.commit();
-console.log('Transaction 2:', t2);
+console.log("Transaction 2:", t2);
+console.log("Balance:", myAccount.balance);
 
-console.log('Balance:', balance);
+console.log("----------------");
+t3 = new Withdrawal(90, myAccount);
+t3.commit();
+console.log("Transaction 3:", t3);
+console.log("Balance:", myAccount.balance);
+
+console.log("----------------");
